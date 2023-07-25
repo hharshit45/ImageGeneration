@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate, useSubmit } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { preview } from '../assets'
 import { getRandomPrompt } from '../utils';
@@ -20,11 +20,21 @@ const CreatePost = () => {
         = useState(false);
 
 
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value })
+    }
+
+    const handleSurpriseMe = () => {
+        const randomPrompt = getRandomPrompt(form.prompt);
+        setForm({ ...form, prompt: randomPrompt });
+    };
+
+
     const generateImage = async () => {
         if (form.prompt) {
             try {
                 setGeneratingImg(true);
-                const response = await fetch('http://localhost:8080/api/v1/dalle', {
+                const response = await fetch('https://image-generator-lbwi.onrender.com/api/v1/dalle', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -35,15 +45,15 @@ const CreatePost = () => {
                 const data = await response.json();
 
                 setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` })
-            } catch (error) {
-                alert(error);
+            } catch (err) {
+                alert(err);
             } finally {
                 setGeneratingImg(false);
             }
         } else {
-            alert("Please Enter a Prompt")
+            alert("Please Enter a Prompt");
         }
-    }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,34 +61,30 @@ const CreatePost = () => {
         if (form.prompt && form.photo) {
             setLoading(true);
             try {
-                const response = await fetch('http://localhost:8080/api/v1/post', {
+                const response = await fetch('https://image-generator-lbwi.onrender.com/api/v1/post', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(form)
-                })
+                    body: JSON.stringify({...form}),
+                });
+
                 await response.json();
+                alert("Success");
                 navigate('/');
             } catch (err) {
-                alert(err)
+                alert(err);
             } finally {
-                setLoading = (false);
+                setLoading(false);
             }
         } else {
             alert("Please Enter a Prompt and Generate an Image")
         }
-    }
+    };
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value })
-    }
 
-    const handleSurpriseMe = () => {
-        const randomPrompt = getRandomPrompt(form.prompt);
-        setForm({ ...form, prompt: randomPrompt })
-    }
 
+    
     return (
         <section className='max-w-7xl mx-auto'>
             <div>
@@ -151,7 +157,7 @@ const CreatePost = () => {
 
             </form>
         </section>
-    )
-}
+    );
+};
 
-export default CreatePost
+export default CreatePost;
